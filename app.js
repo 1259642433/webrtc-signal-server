@@ -1,8 +1,14 @@
-var http = require('http').createServer();
+const fs = require('fs')
 var io = require('socket.io')(http)
+
 const config = {
-    port: 3001
+    port: 3001,
+    key: fs.readFileSync('ssl/key.pem'),
+    cert: fs.readFileSync('ssl/crt.pem')
 }
+
+var http = require('http').createServer(config);
+
 
 const rooms = {}; // 房间
 
@@ -53,7 +59,8 @@ function checkRoom (){
 
 }
 
-http.listen(config.port, function () {
-    console.log(`listening on :http://localhost:${config.port}`)
-})
+http
+    .listen(config.port, function () {
+        console.log(`listening on :https://localhost:${config.port}`)
+    })
 // https.createServer(app.callback()).listen(3001);
