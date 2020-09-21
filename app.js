@@ -4,51 +4,42 @@ const config = {
     port: 3001
 }
 
-const socks = {}; // 客户端socket
 const rooms = {}; // 房间
 
 io.on('connection', socket => {
-    socket.on('offer', data => {
+    socket.on('openRoom', data => {
+        // error:房间已存在(之后加入返回error事件响应统一处理)
         if (!rooms[data.roomId]) {
             rooms[data.roomId] = {
-                sdp: '',
-                candidate:'',
-                users: []
+                host: {},
+                users: {}
             };
         }
-        socks[data.roomId] = socket
-        rooms[data.roomId].sdp = data.sdp
+        socket.join(data.roomId);
+        rooms[data.roomId].host = socket
+    })
+    socket.on('offer', data => {
+        rooms[data.roomId].users[data.userId].emit('offer',data.sdp)
+    })
+    socket.on('iceCandidate', data => {
+        rooms[data.roomId].users[data.userId].emit('iceCandidate',data.candidate)
     })
     socket.on('join', data => {
+        // error:房间不存在
         if (rooms[data.roomId]) {
-            console.log(rooms[data.roomId])
-            socket.emit('getInfo', {
-                sdp: rooms[data.roomId].sdp,
-                candidate: rooms[data.roomId].candidate
-            }); //发送给当前用户
-            socket.broadcast.to(data.roomId).emit('joined', data.account); // 发给房间内当前用户之外的所有人
+            socket.join(data.roomId);
+            rooms[data.roomId].users[data.userId] = socket
+            rooms[data.roomId].host.emit('call',{
+                userId: data.userId
+            })
+            socket.broadcast.to(data.roomId).emit('joined', data); // 发给房间内当前用户之外的所有人
         }
     });
     socket.on('answer', data => {
-        socks[data.roomId].emit('answer', data);
+        rooms[data.roomId].host.emit('answer', data);
     });
-    socket.on('iceCandidate', data => {
-        rooms[data.roomId].candidate = data.candidate
-    });
-    // sock.on('reply', data=>{ // 转发回复
-    //     sockS[data.account].emit('reply', data);
-    // });
-    // sock.on('1v1answer', data=>{ // 转发 answer
-    //     sockS[data.account].emit('1v1answer', data);
-    // });
-    // sock.on('1v1ICE', data=>{ // 转发 ICE
-    //     sockS[data.account].emit('1v1ICE', data);
-    // });
-    // sock.on('1v1offer', data=>{ // 转发 Offer
-    //     sockS[data.account].emit('1v1offer', data);
-    // });
-    // sock.on('1v1hangup', data=>{ // 转发 hangup
-    //     sockS[data.account].emit('1v1hangup', data);
+    // socket.on('iceCandidate', data => {
+    //     rooms[data.roomId].candidate = data.candidate
     // });
 });
 io.on('disconnect', (sock) => {

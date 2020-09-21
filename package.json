@@ -9,5 +9,6 @@
   "author": "U.amazing",
   "license": "ISC",
   "dependencies": {
+    "socket.io": "^2.3.0"
   }
 }
