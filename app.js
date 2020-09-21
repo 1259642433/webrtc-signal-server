@@ -5,7 +5,17 @@ const credentials = {
     cert: fs.readFileSync('ssl/crt.pem')
   }
 
+let allowOrigin={
+    'https://www.wangwentehappy.tk:10001': true,
+}
+
 var https = require('https').createServer(credentials,(req,res)=>{
+    let {origin}=req.headers;
+
+    if(allowOrigin[origin]){
+        res.setHeader('access-control-allow-origin', '*');
+    }
+    
     res.writeHead(200)
     res.end('Hello World!')
 });
