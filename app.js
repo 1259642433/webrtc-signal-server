@@ -1,8 +1,9 @@
 const fs = require('fs')
 var io = require('socket.io')(https)
+
 const credentials = {
-    key: fs.readFileSync('ssl/2_www.wangwentehappy.tk.key.pem'),
-    cert: fs.readFileSync('ssl/1_www.wangwentehappy.tk_bundle.crt.pem')
+    key: fs.readFileSync('ssl/private.pem'),
+    cert: fs.readFileSync('ssl/1_www.wangwentehappy.tk_bundle.crt')
 }
 
 let allowOrigin = {
@@ -13,25 +14,18 @@ var https = require('https').createServer(credentials, (req, res) => {
     let {
         origin
     } = req.headers;
-    console.log(req.headers.origin)
 
-    // if (allowOrigin[origin]) {
-       
-    // }
     res.setHeader('Access-Control-Allow-Credentials', 'true')
     res.setHeader('Access-Control-Allow-Origin', origin)
     res.setHeader('Access-Control-Allow-Methods', 'POST')
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Requested-With')
 
-
-
     res.writeHead(200)
-    res.end('Hello World!')
+    res.end('Hello!!!!!!')
 });
 
 const config = {
     port: 3001,
-
 }
 
 const rooms = {}; // 房间
@@ -83,7 +77,9 @@ function checkRoom() {
 
 }
 
+io.attach(https)
+
 https
     .listen(config.port, function () {
         console.log(`listening on :https://localhost:${config.port}`)
-    })
+})
