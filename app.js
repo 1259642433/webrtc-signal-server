@@ -1,21 +1,30 @@
 const fs = require('fs')
 var io = require('socket.io')(https)
 const credentials = {
-    key: fs.readFileSync('ssl/key.pem'),
-    cert: fs.readFileSync('ssl/crt.pem')
-  }
+    key: fs.readFileSync('ssl/2_www.wangwentehappy.tk.key.pem'),
+    cert: fs.readFileSync('ssl/1_www.wangwentehappy.tk_bundle.crt.pem')
+}
 
-let allowOrigin={
+let allowOrigin = {
     'https://www.wangwentehappy.tk:10001': true,
 }
 
-var https = require('https').createServer(credentials,(req,res)=>{
-    let {origin}=req.headers;
+var https = require('https').createServer(credentials, (req, res) => {
+    let {
+        origin
+    } = req.headers;
+    console.log(req.headers.origin)
 
-    if(allowOrigin[origin]){
-        res.setHeader('access-control-allow-origin', '*');
-    }
-    
+    // if (allowOrigin[origin]) {
+       
+    // }
+    res.setHeader('Access-Control-Allow-Credentials', 'true')
+    res.setHeader('Access-Control-Allow-Origin', origin)
+    res.setHeader('Access-Control-Allow-Methods', 'POST')
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Requested-With')
+
+
+
     res.writeHead(200)
     res.end('Hello World!')
 });
@@ -40,17 +49,17 @@ io.on('connection', socket => {
         rooms[data.roomId].host = socket
     })
     socket.on('offer', data => {
-        rooms[data.roomId].users[data.userId].emit('offer',data.sdp)
+        rooms[data.roomId].users[data.userId].emit('offer', data.sdp)
     })
     socket.on('iceCandidate', data => {
-        rooms[data.roomId].users[data.userId].emit('iceCandidate',data.candidate)
+        rooms[data.roomId].users[data.userId].emit('iceCandidate', data.candidate)
     })
     socket.on('join', data => {
         // error:房间不存在
         if (rooms[data.roomId]) {
             socket.join(data.roomId);
             rooms[data.roomId].users[data.userId] = socket
-            rooms[data.roomId].host.emit('call',{
+            rooms[data.roomId].host.emit('call', {
                 userId: data.userId
             })
             socket.broadcast.to(data.roomId).emit('joined', data); // 发给房间内当前用户之外的所有人
@@ -70,7 +79,7 @@ io.on('disconnect', (sock) => {
     console.log(`disconnect id => ${users}`);
 });
 
-function checkRoom (){
+function checkRoom() {
 
 }
 
